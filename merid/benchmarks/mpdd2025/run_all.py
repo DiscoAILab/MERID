@@ -1,15 +1,13 @@
 """MPDD-2025 helpers: official metric, grouped folds and classifier factories."""
 import argparse
 import os
-import sys
 
 import numpy as np
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from adapter_agent import AdapterAgent
-from proposer import ClaudeProposer
-from run_adapter import _svc, clf_candidate, folds_of
+from merid.core.grounded_state_construction.adapter_agent import AdapterAgent
+from merid.llm.proposer import ClaudeProposer
+from merid.benchmarks.mpdd2025.run_adapter import _svc, clf_candidate, folds_of
 
 CONFIGS = [
     ("MPDD-Young", "MPDD-Young", "MM2025_Track2_Young.json",
@@ -210,8 +208,8 @@ def main():
     proposer = ClaudeProposer(model=a.llm_model, provider=a.proposer, base_url=a.llm_base_url,
                               api_key=a.llm_api_key)
     agent = AdapterAgent(proposer)
-    from adapter_agent import ADAPTER_SYSTEM
-    from trajectory import Trajectory
+    from merid.core.grounded_state_construction.adapter_agent import ADAPTER_SYSTEM
+    from merid.utils.trajectory import Trajectory
     traj = Trajectory(model=a.llm_model, config={"task": "MPDD-2025 classification"},
                       stream_path="mpdd2025_trajectory.jsonl")
     traj.add_system_prompt("adapter_codegen", ADAPTER_SYSTEM)

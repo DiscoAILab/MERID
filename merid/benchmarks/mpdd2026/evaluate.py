@@ -33,7 +33,7 @@ class Harness:
         if data_scope == "development":
             if any(value is None for value in (train_root, personality_npy, split_root, fold_task)):
                 raise ValueError("development Harness requires explicit train_root, personality_npy, split_root, and fold_task")
-            from mpdd2026_data import load_task_maps
+            from merid.benchmarks.mpdd2026.data import load_task_maps
             root = Path(train_root).resolve()
             personality = Path(personality_npy).resolve()
             if root not in personality.parents:
@@ -59,10 +59,7 @@ class Harness:
                 raise ValueError("development ternary labels must be 0, 1, or 2")
             if not all(math.isfinite(value) for value in self.phq.values()):
                 raise ValueError("development PHQ targets must be finite")
-            try:
-                from .mpdd2026_protocol import load_development_fold_protocol
-            except ImportError:
-                from mpdd2026_protocol import load_development_fold_protocol
+            from merid.benchmarks.mpdd2026.protocol import load_development_fold_protocol
             resolved_splits = Path(split_root).resolve()
             self.fold_protocol = load_development_fold_protocol(
                 resolved_splits, fold_task, cohorts[0], n_folds)
@@ -75,8 +72,8 @@ class Harness:
             raise ValueError("explicit development roots require data_scope='development'")
         if split_root is None:
             split_root = DEFAULT_SPLIT_ROOTS[track]
-        from mpdd2026_data import load_task_maps
-        from mpdd2026_data import resolve_project_path
+        from merid.benchmarks.mpdd2026.data import load_task_maps
+        from merid.benchmarks.mpdd2026.data import resolve_project_path
         split = TRACK_TO_SPLIT[track]
         self.data_root = f"MPDD-AVG2026/MPDD-AVG2026-trainval/{split}"
         self.personality_npy = f"MPDD-AVG2026/MPDD-AVG2026-trainval/{split}/descriptions_embeddings_with_ids.npy"
@@ -97,7 +94,7 @@ class Harness:
         data_scope = getattr(self, "data_scope", "all")
         key = (data_scope, audio, video, mode)
         if key not in self._bank_cache:
-            from mpdd2026_data import build_feature_bank
+            from merid.benchmarks.mpdd2026.data import build_feature_bank
             args = (self.track, audio, video, mode, self.binary_maps, self.data_root,
                     self.personality_npy)
             self._bank_cache[key] = (build_feature_bank(*args, data_scope="development")
@@ -106,10 +103,7 @@ class Harness:
                 bank = self._bank_cache[key]
                 if "test_x" in bank or "test_ids" in bank:
                     raise ValueError("development bank must not contain test data")
-                try:
-                    from .mpdd2026_protocol import iter_development_folds
-                except ImportError:
-                    from mpdd2026_protocol import iter_development_folds
+                from merid.benchmarks.mpdd2026.protocol import iter_development_folds
                 iter_development_folds(self.fold_protocol, bank["train_ids"])
         return self._bank_cache[key]
 
@@ -118,7 +112,7 @@ class Harness:
 
     def _binary_rule(self, config, reg):
         if (config or {}).get("binary_rule", "oof_tuned") != "label_cut":
-            from mpdd2026_heads import binary_rule_from_phq
+            from merid.benchmarks.mpdd2026.heads import binary_rule_from_phq
             return binary_rule_from_phq(reg["oof"], self.labels["binary"])
         import collections
         from sklearn.metrics import cohen_kappa_score, f1_score
@@ -132,9 +126,9 @@ class Harness:
                 "source": "label definition (provenance-verified cut)"}
 
     def evaluate(self, config: dict) -> dict:
-        from mpdd2026_heads import calibrate_regression_candidate
-        from mpdd2026_heads import binary_rule_from_phq, ternary_rule_from_phq
-        from mpdd2026_heads import evaluate_regression_candidate
+        from merid.benchmarks.mpdd2026.heads import calibrate_regression_candidate
+        from merid.benchmarks.mpdd2026.heads import binary_rule_from_phq, ternary_rule_from_phq
+        from merid.benchmarks.mpdd2026.heads import evaluate_regression_candidate
 
         bank = self._bank(config["audio"], config["video"], config["mode"])
         if self.data_scope == "development":
@@ -153,8 +147,8 @@ class Harness:
             raise
 
     def _score_phq_component(self, config, reg):
-        from mpdd2026_heads import calibrate_regression_candidate
-        from mpdd2026_heads import binary_rule_from_phq, ternary_rule_from_phq
+        from merid.benchmarks.mpdd2026.heads import calibrate_regression_candidate
+        from merid.benchmarks.mpdd2026.heads import binary_rule_from_phq, ternary_rule_from_phq
 
         if config.get("shrink"):
             if self.data_scope == "development":
@@ -170,10 +164,7 @@ class Harness:
                 reg = calibrate_regression_candidate(reg, self.phq, shrink=float(config["shrink"]))
         log1p_phq_metrics = None
         if self.data_scope == "development":
-            try:
-                from .mpdd2026_metrics import METRIC_CONTRACT, raw_phq_metrics
-            except ImportError:
-                from mpdd2026_metrics import METRIC_CONTRACT, raw_phq_metrics
+            from merid.benchmarks.mpdd2026.metrics import METRIC_CONTRACT, raw_phq_metrics
             expected_ids = set(self.fold_protocol.patient_ids)
             oof_by_id = {str(key): float(value) for key, value in reg["oof"].items()}
             target_by_id = {str(key): float(value) for key, value in self.phq.items()}
@@ -247,7 +238,7 @@ class Harness:
         data_scope = getattr(self, "data_scope", "all")
         key = (data_scope, audio, video, mode)
         if key not in self._abank_cache:
-            from mpdd2026_data import build_alignment_bank
+            from merid.benchmarks.mpdd2026.data import build_alignment_bank
             args = (self.track, audio, video, mode, self.binary_maps, self.data_root,
                     self.personality_npy)
             self._abank_cache[key] = (build_alignment_bank(*args, data_scope="development")
@@ -256,10 +247,7 @@ class Harness:
                 bank = self._abank_cache[key]
                 if "test_x" in bank or "test_ids" in bank:
                     raise ValueError("development alignment bank must not contain test data")
-                try:
-                    from .mpdd2026_protocol import iter_development_folds
-                except ImportError:
-                    from mpdd2026_protocol import iter_development_folds
+                from merid.benchmarks.mpdd2026.protocol import iter_development_folds
                 iter_development_folds(self.fold_protocol, bank["train_ids"])
         return self._abank_cache[key]
 
@@ -274,7 +262,7 @@ class Harness:
         data_scope = getattr(self, "data_scope", "all")
         key = (data_scope, "sevfuse", cfg["audio"], cfg["video"], align_mode, fusion, bm)
         if key not in self._abank_cache:
-            from mpdd2026_data import concatenate_banks
+            from merid.benchmarks.mpdd2026.data import concatenate_banks
             banks = [align, self._bank(ba, bv, bm)]
             self._abank_cache[key] = (
                 concatenate_banks("align_base", banks, data_scope="development")
@@ -284,8 +272,8 @@ class Harness:
     def evaluate_ternary(self, config: dict) -> dict:
         if self.data_scope == "development":
             return self._evaluate_hierarchical_component(config)
-        from mpdd2026_heads import evaluate_classifier_candidate
-        from mpdd2026_heads import combine_hier_oof, evaluate_severity_candidate
+        from merid.benchmarks.mpdd2026.heads import evaluate_classifier_candidate
+        from merid.benchmarks.mpdd2026.heads import combine_hier_oof, evaluate_severity_candidate
 
         gate_bank = self._abank(config["audio"], config["video"], config.get("align_mode", "alignment"))
         sev_bank = self._sev_bank(config)
@@ -299,12 +287,9 @@ class Harness:
         return {"terF1": float(rule["f1"]), "terKappa": float(rule["kappa"]), "rule": rule, "config": config}
 
     def _evaluate_hierarchical_component(self, config):
-        from mpdd2026_heads import evaluate_classifier_candidate
-        from mpdd2026_heads import combine_hier_oof, evaluate_severity_candidate
-        if __package__:
-            from .mpdd2026_metrics import METRIC_CONTRACT
-        else:
-            from mpdd2026_metrics import METRIC_CONTRACT
+        from merid.benchmarks.mpdd2026.heads import evaluate_classifier_candidate
+        from merid.benchmarks.mpdd2026.heads import combine_hier_oof, evaluate_severity_candidate
+        from merid.benchmarks.mpdd2026.metrics import METRIC_CONTRACT
         if self.data_scope != 'development' or self.fold_protocol is None:
             raise ValueError('hierarchical component requires explicit development protocol')
         gate_bank = self._abank(config['audio'], config['video'], config.get('align_mode', 'alignment'))
@@ -376,7 +361,7 @@ class Harness:
             raise RuntimeError("development generic estimator evaluation is not wired")
         import numpy as np
         from sklearn.metrics import f1_score
-        from mpdd2026_data import create_train_val_split
+        from merid.benchmarks.mpdd2026.data import create_train_val_split
 
         bank = self._bank(config["audio"], config["video"], config["mode"])
         X = np.asarray(bank["train_x"], dtype=np.float64)
@@ -402,9 +387,9 @@ class Harness:
     def predict_phq_binary(self, phq_cfg: dict) -> dict:
         if self.data_scope == "development":
             raise RuntimeError("development prediction is not wired")
-        from mpdd2026_heads import calibrate_regression_candidate
-        from mpdd2026_heads import binary_rule_from_phq
-        from mpdd2026_heads import evaluate_regression_candidate
+        from merid.benchmarks.mpdd2026.heads import calibrate_regression_candidate
+        from merid.benchmarks.mpdd2026.heads import binary_rule_from_phq
+        from merid.benchmarks.mpdd2026.heads import evaluate_regression_candidate
 
         bank = self._bank(phq_cfg["audio"], phq_cfg["video"], phq_cfg["mode"])
         reg = evaluate_regression_candidate(bank, self.phq, self.split_roots, phq_cfg["model"],
@@ -418,8 +403,8 @@ class Harness:
     def predict_ternary(self, ternary_cfg: dict) -> dict:
         if self.data_scope == "development":
             raise RuntimeError("development prediction is not wired")
-        from mpdd2026_heads import evaluate_classifier_candidate
-        from mpdd2026_heads import combine_hier_oof, evaluate_severity_candidate
+        from merid.benchmarks.mpdd2026.heads import evaluate_classifier_candidate
+        from merid.benchmarks.mpdd2026.heads import combine_hier_oof, evaluate_severity_candidate
 
         gate_bank = self._abank(ternary_cfg["audio"], ternary_cfg["video"], ternary_cfg.get("align_mode", "alignment"))
         sev_bank = self._sev_bank(ternary_cfg)

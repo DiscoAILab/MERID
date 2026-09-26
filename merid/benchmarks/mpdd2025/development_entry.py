@@ -9,20 +9,13 @@ import shutil
 
 import numpy as np
 
-try:
-    from .mpdd2025_corpus_facade import MPDDCorpusFacade
-    from .adapter_agent import AdapterAgent, inspect_dataset, ADAPTER_SYSTEM
-    from .development_agent import run_development
-    from .proposer import ClaudeProposer
-    from .trajectory import Trajectory
-    from .registry import select_method
-except ImportError:
-    from mpdd2025_corpus_facade import MPDDCorpusFacade
-    from adapter_agent import AdapterAgent, inspect_dataset, ADAPTER_SYSTEM
-    from development_agent import run_development
-    from proposer import ClaudeProposer
-    from trajectory import Trajectory
-    from registry import select_method
+from merid.benchmarks.mpdd2025.corpus_facade import MPDDCorpusFacade
+from merid.core.grounded_state_construction.adapter_agent import (
+    AdapterAgent, inspect_dataset, ADAPTER_SYSTEM)
+from merid.core.development_agent import run_development
+from merid.llm.proposer import ClaudeProposer
+from merid.utils.trajectory import Trajectory
+from merid.core.coupled_pipeline_exploration.registry import select_method
 
 
 LABEL_FIELDS = {'binary': 'bin_category', 'ternary': 'tri_category', 'quinary': 'pen_category'}
@@ -178,7 +171,7 @@ def run(args):
     output, seed = Path(args.output_dir).resolve(), Path(args.freeze_dir).resolve()
     data_root = Path(args.data_root).resolve()
     if (output.exists() or _inside(output, seed.parent) or _inside(seed.parent, output) or
-            _inside(output, Path(__file__).resolve().parent)):
+            _inside(output, Path(__file__).resolve().parents[2])):
         raise ValueError('output must be fresh and outside staged inputs and executed source')
     output.mkdir(parents=True)
     shutil.copytree(seed, output / 'frozen')

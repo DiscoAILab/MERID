@@ -6,7 +6,7 @@ import os
 import random
 import re
 
-from space import DEFAULT, SPACE, choices, roles, validate
+from merid.benchmarks.mpdd2026.space import DEFAULT, SPACE, choices, roles, validate
 
 _SYSTEM = ("You are an AutoML research agent constructing a multimodal depression-detection "
            "pipeline. You SEE the dataset's characteristics and pick the next configuration to "

@@ -8,9 +8,9 @@ import time
 import traceback
 from pathlib import Path
 
-from profiler import profile as build_profile
-from space import DEFAULT, choices, key as config_key
-from space import SPACE
+from merid.benchmarks.mpdd2026.profiler import profile as build_profile
+from merid.benchmarks.mpdd2026.space import DEFAULT, choices, key as config_key
+from merid.benchmarks.mpdd2026.space import SPACE
 
 
 def _failure_location(exc):
@@ -62,10 +62,7 @@ def optimize(harness, proposer, budget=12, seed=42, log_path=None, profile=None,
              retrospective=0, review_checks=2, review_mode='roles', revision_reserve=0.25,
              traj=None, ctx='MPDD-2026', search_axes='all'):
     if search_mode == 'joint_heads':
-        try:
-            from .mpdd2026_joint_search import optimize_joint
-        except ImportError:
-            from mpdd2026_joint_search import optimize_joint
+        from merid.benchmarks.mpdd2026.joint_search import optimize_joint
         return optimize_joint(harness, proposer, budget=budget, seed=seed,
                               log_path=log_path, profile=profile, fit_budget=fit_budget,
                               reference_components=reference_components,

@@ -1,7 +1,5 @@
 """Generic classical method on an agent-written adapter, plus the shared classifier and fold helpers."""
 import argparse
-import os
-import sys
 
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
@@ -12,9 +10,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from adapter_agent import AdapterAgent
-from proposer import ClaudeProposer
+from merid.core.grounded_state_construction.adapter_agent import AdapterAgent
+from merid.llm.proposer import ClaudeProposer
 
 
 def folds_of(y, k=10, seed=0):

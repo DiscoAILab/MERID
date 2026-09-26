@@ -9,12 +9,8 @@ import random
 from copy import deepcopy
 import numpy as np
 
-try:
-    from .space import (DEFAULT, SEARCH_AXES, SPACE, TERNARY_DEFAULT, TERNARY_SPACE,
-                        free_axes, pinned_axes)
-except ImportError:
-    from space import (DEFAULT, SEARCH_AXES, SPACE, TERNARY_DEFAULT, TERNARY_SPACE,
-                       free_axes, pinned_axes)
+from merid.benchmarks.mpdd2026.space import (
+    DEFAULT, SEARCH_AXES, SPACE, TERNARY_DEFAULT, TERNARY_SPACE, free_axes, pinned_axes)
 
 METRIC_CONTRACT = 'mpdd2026_raw_phq_track'
 FAMILIES = ('binary_phq', 'hierarchical_ternary')
@@ -337,10 +333,7 @@ def _axis_coverage(scored):
 
 
 def _hold_joint_review(proposer, evidence, budget_checks, traj, ctx, prior_rounds, mode):
-    try:
-        from .retrospective import hold_review
-    except ImportError:
-        from retrospective import hold_review
+    from merid.core.evidence_guided_evolution.retrospective import hold_review
     reviewer_tools = {'reviewer': {}, 'planner': {}, 'engineer': {}}
     return hold_review(proposer, evidence, tools=reviewer_tools, prior_rounds=prior_rounds,
                        budget=budget_checks, traj=traj, ctx=ctx, return_status=True, mode=mode)

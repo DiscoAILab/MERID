@@ -11,22 +11,15 @@ from pathlib import Path
 
 import numpy as np
 
-try:
-    from .development_search import DevelopmentSearch, CheckpointPersistenceError, fingerprint
-    from .reliability import assess_search
-    from .development_diagnostics import (cached_recipe_evidence, explored_surface,
-                                          selection_diagnostics)
-    from .adapter_source_evidence import AdapterSourceEvidence
-    from .retrospective import hold_review, write_minutes, ROLE_SYSTEM, CHAIR_SYSTEM
-    from .research_memory import ResearchMemory, MEMORY_USE
-except ImportError:
-    from development_search import DevelopmentSearch, CheckpointPersistenceError, fingerprint
-    from reliability import assess_search
-    from development_diagnostics import (cached_recipe_evidence, explored_surface,
-                                         selection_diagnostics)
-    from adapter_source_evidence import AdapterSourceEvidence
-    from retrospective import hold_review, write_minutes, ROLE_SYSTEM, CHAIR_SYSTEM
-    from research_memory import ResearchMemory, MEMORY_USE
+from merid.core.coupled_pipeline_exploration.development_search import (
+    DevelopmentSearch, CheckpointPersistenceError, fingerprint)
+from merid.core.evidence_guided_evolution.reliability import assess_search
+from merid.core.evidence_guided_evolution.development_diagnostics import (
+    cached_recipe_evidence, explored_surface, selection_diagnostics)
+from merid.core.grounded_state_construction.adapter_source_evidence import AdapterSourceEvidence
+from merid.core.evidence_guided_evolution.retrospective import (
+    hold_review, write_minutes, ROLE_SYSTEM, CHAIR_SYSTEM)
+from merid.core.evidence_guided_evolution.research_memory import ResearchMemory, MEMORY_USE
 
 
 DEFAULT_REVISION_RESERVE = 0.25
@@ -200,10 +193,7 @@ class _ConstrainedReviewProposer:
 def apply_reliability_gate(search, args, log=print):
     if str(getattr(args, 'reliability_gate', 'on')).lower() == 'off':
         return None
-    try:
-        from .reliability import assess_promotion
-    except ImportError:
-        from reliability import assess_promotion
+    from merid.core.evidence_guided_evolution.reliability import assess_promotion
 
     gate = {}
     try:
@@ -540,10 +530,7 @@ def run_development(corpus, args, proposer, load, recipes, report, extractors,
             print('  [budget] %d evaluations used; %d held back for what the review asks for (%s schedule)'
                   % (len(search.records), total_budget - len(search.records), reserve_schedule), flush=True)
     for round_no in range(1, args.retrospective + 1):
-        try:
-            from .progress import stage as _stage
-        except ImportError:
-            from progress import stage as _stage
+        from merid.utils.progress import stage as _stage
         _stage('review round %d/%d' % (round_no, args.retrospective), traj)
         if held_back and reserve_schedule == 'equal':
             search.max_evaluations = args.max_evaluations + int(math.ceil(held_back * round_no / args.retrospective))

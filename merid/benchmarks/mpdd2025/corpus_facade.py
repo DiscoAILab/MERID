@@ -4,18 +4,11 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 
-try:
-    from . import run_corpus as _corpus
-    from .run_method import propose_recipe_space as _propose_mpdd_recipes
-    from .mpdd2025_decoding import GroupedDecodingClassifier, STRATEGIES
-    from .mpdd2025_model_bridge import build_model
-    from .run_method import ORDINAL_BASES, metric_value, CLF_METRIC_NAMES, PROBA_MODELS
-except ImportError:
-    import run_corpus as _corpus
-    from run_method import propose_recipe_space as _propose_mpdd_recipes
-    from mpdd2025_decoding import GroupedDecodingClassifier, STRATEGIES
-    from mpdd2025_model_bridge import build_model
-    from run_method import ORDINAL_BASES, metric_value, CLF_METRIC_NAMES, PROBA_MODELS
+import merid.run_corpus as _corpus
+from merid.run_method import propose_recipe_space as _propose_mpdd_recipes
+from merid.benchmarks.mpdd2025.decoding import GroupedDecodingClassifier, STRATEGIES
+from merid.benchmarks.mpdd2025.model_bridge import build_model
+from merid.run_method import ORDINAL_BASES, metric_value, CLF_METRIC_NAMES, PROBA_MODELS
 
 
 TASKS = {

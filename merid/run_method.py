@@ -2,20 +2,20 @@
 import argparse
 import os
 import re
-import sys
 
 import numpy as np
 from scipy import stats
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from adapter_agent import ADAPTER_SYSTEM, AdapterAgent, inspect_dataset
-from operation import OperationAgent, Registry, retrieve_grounding
-from proposer import ClaudeProposer
-from registry import ensure_repo, select_method
-from run_mpdd2025_all import (CONFIGS, WINDOWS, agent_classify, grouped_folds,
-                              make_clf, oof_clf, official, spec_for)
-from trajectory import Trajectory
+from merid.core.grounded_state_construction.adapter_agent import (
+    ADAPTER_SYSTEM, AdapterAgent, inspect_dataset)
+from merid.core.coupled_pipeline_exploration.operation import (
+    OperationAgent, Registry, retrieve_grounding)
+from merid.llm.proposer import ClaudeProposer
+from merid.core.coupled_pipeline_exploration.registry import ensure_repo, select_method
+from merid.benchmarks.mpdd2025.run_all import (
+    CONFIGS, WINDOWS, agent_classify, grouped_folds, make_clf, oof_clf, official, spec_for)
+from merid.utils.trajectory import Trajectory
 
 DEFAULT_SPACE = [{"audio": "wav2vec", "video": v, "agg": g, "ind_emb": True, "meta": m}
                  for v in ("densenet", "resnet", "openface")
@@ -87,7 +87,7 @@ def propose_recipe_space(proposer, report, ctx, freeze_dir, traj=None, grounding
         if traj is not None:
             traj.log("recipe_space_frozen", dataset=ctx, choice=obj["recipes"], sha256=obj.get("sha256"))
         return obj["recipes"]
-    from retrieval import decide_with_optional_search
+    from merid.llm.retrieval import decide_with_optional_search
     prompt = (f"Dataset: {ctx}\n\nOBSERVED inspection (available extractors, shapes, value statistics, "
               f"label fields) — this is measured from THIS data:\n{report[:2600]}\n\n"
               f"Design the candidate recipe list now.")
@@ -349,7 +349,7 @@ def propose_eval_metric(proposer, ctx, task_desc, report, freeze_dir, traj=None,
         if traj is not None:
             traj.log("eval_metric_frozen", dataset=ctx, choice=obj["metric"])
         return obj["metric"]
-    from retrieval import decide_with_optional_search
+    from merid.llm.retrieval import decide_with_optional_search
     prompt = ("Corpus: %s" + NL2 + "TASK: %s" + NL2 + "OBSERVED INSPECTION:" + NL + "%s" + NL2
               + "OPTIONS: %s" + NL2 + "Name the metric this corpus is judged by."
               ) % (ctx, task_desc, report[:1800], " | ".join(options))
@@ -451,7 +451,7 @@ def propose_clf_space(proposer, prof, ctx, freeze_dir, traj=None, kind="classifi
         if traj is not None:
             traj.log(f"{tag.replace(chr(45), chr(95))}_frozen", dataset=ctx, choice=obj["configs"], sha256=obj.get("sha256"))
         return obj["configs"]
-    from retrieval import decide_with_optional_search
+    from merid.llm.retrieval import decide_with_optional_search
     txt = decide_with_optional_search(proposer, system,
                                       f"OBSERVED DATA REGIME (measured from THIS data): {prof}\n\n"
                                       f"Design the candidate classifier list now.",
@@ -546,7 +546,7 @@ def propose_modality_priors(proposer, report, prof, recipe, ctx, freeze_dir, tra
         print(f"  [modality-prior] frozen prior was stated for sources {was} but this recipe enables "
               f"{sorted(sources)} — re-stating", flush=True)
         os.replace(fp, fp + ".superseded")
-    from retrieval import decide_with_optional_search
+    from merid.llm.retrieval import decide_with_optional_search
     prompt = (f"Dataset: {ctx}\n\nOBSERVED INSPECTION (extractors, shapes, value statistics):\n"
               f"{report[:2400]}\n\nMEASURED REGIME: {prof}\n\n"
               f"ENABLED FEATURE SOURCES in the chosen recipe: {sources}\n"
@@ -592,8 +592,9 @@ CODEGEN_SYSTEM = (
 def propose_codegen_method(proposer, prof, ctx, freeze_dir, traj=None):
     import hashlib
     import json as _json
-    from operation import build_from_code, extract_code, smoke_test
-    from retrieval import decide_with_optional_search
+    from merid.core.coupled_pipeline_exploration.operation import (
+        build_from_code, extract_code, smoke_test)
+    from merid.llm.retrieval import decide_with_optional_search
     safe = ctx.replace("/", "_").replace("\\", "_")
     fp = os.path.join(freeze_dir, f"codegen_{safe}.json")
     if os.path.exists(fp) and _freeze_matches_regime(_json.load(open(fp)), prof, fp, "codegen"):
@@ -1306,7 +1307,7 @@ def main():
                 not 1 <= a.max_evaluations <= 256 or not 0 <= a.review_checks <= 20 or
                 not 0 <= a.retrospective <= 20):
             ap.error('invalid development seed, folds or search/review budget')
-        from mpdd2025_development_entry import run
+        from merid.benchmarks.mpdd2025.development_entry import run
         run(a)
         return
     if not a.test_root:

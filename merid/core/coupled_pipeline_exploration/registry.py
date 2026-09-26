@@ -40,7 +40,7 @@ REGISTRY: dict = {
         "params": "k, n_components"},
 
     "competition_framework": {
-        "kind": "classical_pipeline", "source": "mpdd2026_data.py + mpdd2026_heads.py", "released": True,
+        "kind": "classical_pipeline", "source": "benchmarks/mpdd2026/data.py + benchmarks/mpdd2026/heads.py", "released": True,
         "modality_input": "per-event [PAIR,T,D] audio/video + gait + personality (MPDD format)",
         "regime_fit": "MPDD-AVG family; 3-head recombine (Young) / stratmeta stacking (Elder)",
         "params": "feature bank, PLS-n, shrink, gate/severity, stack_meta"},

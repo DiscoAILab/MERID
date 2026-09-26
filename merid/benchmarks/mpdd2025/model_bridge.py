@@ -3,12 +3,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 
-try:
-    from .run_mpdd2025_all import make_clf, make_reg
-    from .run_method import FrankHallOrdinal
-except ImportError:
-    from run_mpdd2025_all import make_clf, make_reg
-    from run_method import FrankHallOrdinal
+from merid.benchmarks.mpdd2025.run_all import make_clf, make_reg
+from merid.run_method import FrankHallOrdinal
 
 
 CLASSIFIERS = frozenset(('svc_linear', 'svc_rbf', 'logreg', 'gb', 'rf', 'et'))

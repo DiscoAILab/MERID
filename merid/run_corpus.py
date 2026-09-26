@@ -6,19 +6,15 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from adapter_agent import ADAPTER_SYSTEM, AdapterAgent, inspect_dataset
-from proposer import ClaudeProposer
-try:
-    from .progress import stage as _stage
-except ImportError:
-    from progress import stage as _stage
-from run_method import (metric_value, propose_clf_space, propose_codegen_method,
-                        propose_eval_metric,
-                        propose_modality_priors)
-from run_mpdd2025_all import official
-from trajectory import Trajectory
+from merid.core.grounded_state_construction.adapter_agent import (
+    ADAPTER_SYSTEM, AdapterAgent, inspect_dataset)
+from merid.llm.proposer import ClaudeProposer
+from merid.utils.progress import stage as _stage
+from merid.run_method import (
+    metric_value, propose_clf_space, propose_codegen_method, propose_eval_metric,
+    propose_modality_priors)
+from merid.benchmarks.mpdd2025.run_all import official
+from merid.utils.trajectory import Trajectory
 
 CTX = "E-DAIC"
 
@@ -213,7 +209,7 @@ def propose_recipe_space(proposer, report, extractors, freeze_dir, traj=None, fe
         obj = _json.load(open(fp))
         print("  [recipe-space] reused %d FROZEN recipes (%s)" % (len(obj["recipes"]), fp), flush=True)
         return obj["recipes"]
-    from retrieval import decide_with_optional_search
+    from merid.llm.retrieval import decide_with_optional_search
     menu = ("The inspection lists these extractor directories, and they ARE the legal source values: "
             "%s\n" % list(extractors) if extractors else
             "The inspection lists no extractor directories. If it shows raw recordings, name the "
@@ -270,12 +266,12 @@ def _y(d, split):
 
 
 def _make(cfg, p):
-    from run_mpdd2025_all import make_clf, make_reg
+    from merid.benchmarks.mpdd2025.run_all import make_clf, make_reg
     return (make_reg if _is_reg() else make_clf)(cfg, p)
 
 
 def _probe_cfg():
-    from run_method import PROBE_CFG
+    from merid.run_method import PROBE_CFG
     return {"model": "ridge", "k": 128, "alpha": 100.0} if _is_reg() else PROBE_CFG
 
 
@@ -310,7 +306,7 @@ def _held_out_score(d, cfg, codegen_build=None, want_pred=False):
         pr = m.predict(np.asarray(d["dev_X"], float))
         sc = _dev(yd, pr)
         return (sc, yd, pr, None) if want_pred else sc
-    from run_mpdd2025_all import grouped_folds
+    from merid.benchmarks.mpdd2025.run_all import grouped_folds
     g = np.asarray(d.get("train_subject", np.arange(len(y))))
     oof = np.full(len(y), np.nan)
     for tr, va in grouped_folds(_strata(y), g, seed=0):
@@ -333,7 +329,7 @@ def _score_spread(d, cfg, codegen_build=None):
         return 0.0
     if g is None:
         return _dev_score_spread(np.asarray(yt), np.asarray(pr))
-    from run_method import _subject_bootstrap_se
+    from merid.run_method import _subject_bootstrap_se
     return _subject_bootstrap_se(yt, pr, g, SEL_NAME)
 
 
@@ -534,7 +530,7 @@ def discover_extractors(root):
 
 
 def _oof_pred(X, y, g, cfg, codegen_build=None, seed=0):
-    from run_mpdd2025_all import grouped_folds
+    from merid.benchmarks.mpdd2025.run_all import grouped_folds
     oof = np.full(len(y), np.nan)
     for tr, va in grouped_folds(_strata(y), g, seed=seed):
         if len(tr) == 0 or len(va) == 0:
@@ -548,7 +544,7 @@ def _oof_pred(X, y, g, cfg, codegen_build=None, seed=0):
 
 
 def nested_report(load, recipes, configs, codegen_build, traj, widths=None):
-    from run_mpdd2025_all import grouped_folds
+    from merid.benchmarks.mpdd2025.run_all import grouped_folds
     import json as _json
     mats = {}
     for rc in recipes:
@@ -647,7 +643,7 @@ def nested_report(load, recipes, configs, codegen_build, traj, widths=None):
             continue
         scored.sort(key=lambda z: z[0], reverse=True)
         top_sc, top_cfg, top_o, top_mk = scored[0]
-        from run_method import _subject_bootstrap_se
+        from merid.run_method import _subject_bootstrap_se
         sd = _subject_bootstrap_se(y[tr][top_mk],
                                    top_o[top_mk] if _is_reg() else top_o[top_mk].astype(int),
                                    g[tr][top_mk], SEL_NAME)
@@ -674,7 +670,7 @@ _REPORT_DIR = None
 
 
 def _report(yt, yp, n, protocol, picks, traj, ref=None):
-    from run_method import metric_value as _mv
+    from merid.run_method import metric_value as _mv
     yt = np.asarray(yt)
     yp = np.asarray(yp)
     print("", flush=True)
@@ -909,7 +905,7 @@ def _apply_revision(verdict, proposer, report, extractors, contract, probes, age
         _supersede("recipe_space_%s.json" % safe)
         recipes = propose_recipe_space(proposer, report, extractors, a.freeze_dir, traj, feedback=fb)
         contract, probes = _contract_and_probes(recipes)
-        from adapter_agent import check_recipe_honored
+        from merid.core.grounded_state_construction.adapter_agent import check_recipe_honored
         err = check_recipe_honored(load_now, probes) if (load_now and probes) else ""
         if err:
             print("  [review] the frozen adapter does not honour the revised space -> re-deriving; "
@@ -1121,10 +1117,7 @@ def main():
         os.makedirs(_REPORT_DIR, exist_ok=True)
 
     if a.log != "off":
-        try:
-            from .progress import tee_output as _tee
-        except ImportError:
-            from progress import tee_output as _tee
+        from merid.utils.progress import tee_output as _tee
         _tee(a.log if a.log != "auto" else os.path.join(
             a.output_dir or "logs", "%s_%s_%s.log" % (safe.lower(), TASK, _time.strftime("%Y%m%d_%H%M%S"))))
 
@@ -1153,7 +1146,7 @@ def main():
     task_desc = ("continuous-severity REGRESSION on the '%s' target" % TASK if _is_reg()
                  else "classification of the '%s' label" % TASK)
     if a.selection_metric:
-        from run_method import CLF_METRIC_NAMES, REG_METRIC_NAMES
+        from merid.run_method import CLF_METRIC_NAMES, REG_METRIC_NAMES
         if a.selection_metric not in (REG_METRIC_NAMES if _is_reg() else CLF_METRIC_NAMES):
             ap.error('selection_metric is unsupported for this task kind')
         SEL_NAME = a.selection_metric
@@ -1226,7 +1219,7 @@ def main():
             "could not derive them from the inspection on a corpus it has not seen." % CTX)
 
     if a.evaluation == 'development':
-        from development_agent import run_development
+        from merid.core.development_agent import run_development
         _stage("5/6 development search + review", traj)
         run_development(sys.modules[__name__], a, proposer, load, recipes, report,
                         extractors, adapter_reasoning, traj, adapter_source=code)
@@ -1293,7 +1286,8 @@ def main():
                     "directly above this one — read that rather than guessing from this message." % CTX)
             if _rnd >= a.retrospective:
                 break
-            from retrospective import hold_review, write_minutes
+            from merid.core.evidence_guided_evolution.retrospective import (
+                hold_review, write_minutes)
             _yt, _yp, _n, _picks = res
             import collections as _c2
             ev = _selection_evidence(
@@ -1385,7 +1379,7 @@ def main():
     print("", flush=True)
     print(f"==================== MERID - {CTX} / {TASK} ====================", flush=True)
     if _is_reg():
-        from run_method import metric_value as _mv
+        from merid.run_method import metric_value as _mv
 
         def row(yy, pp):
             return (-_mv("neg_rmse", yy, pp), -_mv("neg_mae", yy, pp),

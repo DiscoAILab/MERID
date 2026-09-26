@@ -5,15 +5,12 @@ import argparse
 import hashlib
 import json
 import os
-import sys
 import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from evaluate import Harness
-from run_e2e import save_preds, score_vs_answer
+from merid.benchmarks.mpdd2026.evaluate import Harness
+from merid.benchmarks.mpdd2026.run_e2e import save_preds, score_vs_answer
 
 PHQ_KEYS = ("audio", "video", "mode", "model", "k", "shrink", "binary_rule")
 TER_KEYS = ("audio", "video", "align_mode", "gate_model", "sev_model", "sev_fusion", "k", "sev_base_mode")

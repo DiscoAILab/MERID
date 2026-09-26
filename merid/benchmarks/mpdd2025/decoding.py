@@ -5,16 +5,9 @@ from decimal import Decimal, InvalidOperation
 import numpy as np
 from sklearn.model_selection import StratifiedGroupKFold
 
-try:
-    from .mpdd2025_model_bridge import build_model, CLASSIFIERS, ORDERED_TASKS
-    from .run_method import (_pool_by_group, _subject_level, _tune_bias,
-                             BIAS_STEPS, PROBA_MODELS)
-    from .run_method import CLF_METRIC_NAMES
-except ImportError:
-    from mpdd2025_model_bridge import build_model, CLASSIFIERS, ORDERED_TASKS
-    from run_method import (_pool_by_group, _subject_level, _tune_bias,
-                            BIAS_STEPS, PROBA_MODELS)
-    from run_method import CLF_METRIC_NAMES
+from merid.benchmarks.mpdd2025.model_bridge import build_model, CLASSIFIERS, ORDERED_TASKS
+from merid.run_method import _pool_by_group, _subject_level, _tune_bias, BIAS_STEPS, PROBA_MODELS
+from merid.run_method import CLF_METRIC_NAMES
 
 
 STRATEGIES = frozenset(('plain', 'subject_consensus', 'metric_bias',

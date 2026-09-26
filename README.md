@@ -31,7 +31,7 @@ next round.
 | 7. Test once | The development-selected deployment is scored once on the held-out test set. | `corpus_final_eval.py`, `mpdd2025_final_eval.py`, `mpdd2026_final_eval.py` |
 
 MPDD-2026 runs the search-and-review loop over its binary/PHQ and hierarchical ternary head
-families (`run_agent.py`, `mpdd2026_joint_search.py`).
+families (`run_agent.py`, `benchmarks/mpdd2026/joint_search.py`).
 
 ## Repository structure
 
@@ -41,26 +41,40 @@ families (`run_agent.py`, `mpdd2026_joint_search.py`).
 ├── requirements.txt
 ├── assets/
 │   └── merid_banner.png
-└── merid/              MERID source code, grouped by component below
+└── merid/
+    ├── run_corpus.py                        entry point: E-DAIC, Mental Health, Kaggle
+    ├── run_method.py                        entry point: MPDD-2025
+    ├── run_agent.py                         entry point: MPDD-2026
+    ├── core/
+    │   ├── development_agent.py             self-improvement loop: search, review rounds, inheritance
+    │   ├── grounded_state_construction/     GSC
+    │   │   ├── adapter_agent.py             adapter derivation, execution checks, recipe probes, repair
+    │   │   ├── adapter_cache.py             cache of deterministic adapter outputs
+    │   │   ├── adapter_source_evidence.py   adapter source as review evidence
+    │   │   └── label_provenance.py          target-defining column check
+    │   ├── coupled_pipeline_exploration/    CPE
+    │   │   ├── development_search.py        joint recipe × predictor search
+    │   │   ├── registry.py                  method catalog
+    │   │   └── operation.py                 generated estimators for the catalog
+    │   └── evidence_guided_evolution/       EGE
+    │       ├── retrospective.py             Planner, Engineer, Reviewer and Chair
+    │       ├── research_memory.py           lessons distilled after each review round
+    │       ├── reliability.py               uncertainty-aware verification
+    │       └── development_diagnostics.py   selection evidence for the review
+    ├── llm/                                 proposer and web-search grounding
+    ├── utils/                               run trajectory and progress reporting
+    ├── benchmarks/
+    │   ├── mpdd2025/                        development entry, grouped decoding, estimator factories
+    │   └── mpdd2026/                        data, heads, fold protocol, metrics, head search
+    └── evaluation/                          final evaluation on the held-out test sets
 ```
-
-| Component | Modules |
-|---|---|
-| Entry points | `run_corpus.py` (E-DAIC, Mental Health, Kaggle) · `run_method.py` (MPDD-2025) · `run_agent.py` (MPDD-2026) |
-| GSC | `adapter_agent.py` · `adapter_source_evidence.py` · `adapter_cache.py` · `label_provenance.py` · `profiler.py` |
-| CPE | `development_search.py` · `registry.py` · `operation.py` · `retrieval.py` · `mpdd2025_decoding.py` · `mpdd2025_model_bridge.py` |
-| CPE for MPDD-2026 | `space.py` · `manager.py` · `evaluate.py` · `mpdd2026_joint_search.py` · `mpdd2026_data.py` · `mpdd2026_heads.py` · `mpdd2026_protocol.py` · `mpdd2026_metrics.py` |
-| EGE | `retrospective.py` · `development_diagnostics.py` · `reliability.py` · `research_memory.py` · `development_agent.py` |
-| MPDD-2025 support | `mpdd2025_development_entry.py` · `mpdd2025_corpus_facade.py` · `run_mpdd2025_all.py` · `run_adapter.py` |
-| Final evaluation | `corpus_final_eval.py` · `mpdd2025_final_eval.py` · `mpdd2026_final_eval.py` · `run_e2e.py` |
-| LLM and logging | `proposer.py` · `trajectory.py` · `progress.py` |
 
 Each module opens with a one-line summary of its role. Paths specific to our computing environment
 appear as placeholders such as `<SPLIT_ROOT>`.
 
 ## Prompts
 
-The prompts reproduced in the appendix are defined in these modules:
+The prompts reproduced in the appendix are defined in these modules (paths relative to `merid/`):
 
 | Prompt | Definition |
 |---|---|
@@ -68,9 +82,9 @@ The prompts reproduced in the appendix are defined in these modules:
 | Feature-recipe space | `run_corpus.py` `RECIPE_SYSTEM`; `run_method.py` `RECIPE_SPACE_SYSTEM` |
 | Classifier and regressor spaces | `run_method.py` `CLF_SPACE_SYSTEM`, `REG_SPACE_SYSTEM` |
 | Model-code generation | `run_method.py` `CODEGEN_SYSTEM` |
-| Data adapter derivation and repair | `adapter_agent.py` `ADAPTER_SYSTEM` |
-| Method selection | `registry.py` `select_method` |
-| MPDD-2026 head proposer | `mpdd2026_joint_search.py` `HeadProposer.propose` |
-| Planner, Engineer, Reviewer, Chair | `retrospective.py` `ROLE_SYSTEM`, `CHAIR_SYSTEM`, `REVISION_REQUIRED`, `_INVESTIGATE` |
-| Distill and Reconcile | `research_memory.py` `DISTILL_SYSTEM`, `RECONCILE_SYSTEM` |
-| Web-search clause | `retrieval.py` `OPTIONAL_SEARCH_CLAUSE` |
+| Data adapter derivation and repair | `core/grounded_state_construction/adapter_agent.py` `ADAPTER_SYSTEM` |
+| Method selection | `core/coupled_pipeline_exploration/registry.py` `select_method` |
+| MPDD-2026 head proposer | `benchmarks/mpdd2026/joint_search.py` `HeadProposer.propose` |
+| Planner, Engineer, Reviewer, Chair | `core/evidence_guided_evolution/retrospective.py` `ROLE_SYSTEM`, `CHAIR_SYSTEM`, `REVISION_REQUIRED`, `_INVESTIGATE` |
+| Distill and Reconcile | `core/evidence_guided_evolution/research_memory.py` `DISTILL_SYSTEM`, `RECONCILE_SYSTEM` |
+| Web-search clause | `llm/retrieval.py` `OPTIONAL_SEARCH_CLAUSE` |

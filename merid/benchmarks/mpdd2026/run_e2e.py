@@ -3,19 +3,16 @@ import argparse
 import csv
 import io
 import os
-import sys
 import zipfile
 
 import numpy as np
 from sklearn.metrics import accuracy_score, cohen_kappa_score, f1_score
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from evaluate import Harness
-from manager import optimize
-from profiler import profile as build_profile
-from proposer import ClaudeProposer, RandomProposer
-from space import TERNARY_SPACE
+from merid.benchmarks.mpdd2026.evaluate import Harness
+from merid.benchmarks.mpdd2026.manager import optimize
+from merid.benchmarks.mpdd2026.profiler import profile as build_profile
+from merid.llm.proposer import ClaudeProposer, RandomProposer
+from merid.benchmarks.mpdd2026.space import TERNARY_SPACE
 
 
 def build_proposer(args):

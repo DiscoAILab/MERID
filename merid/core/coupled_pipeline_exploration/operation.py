@@ -17,7 +17,7 @@ MODULE_SYSTEM = (
 _CODE_RE = re.compile(r"```(?:python)?\s*(.+?)```", re.DOTALL)
 
 def retrieve_grounding(proposer, spec, profile="", traj=None, ctx=""):
-    from retrieval import agentic_retrieve
+    from merid.llm.retrieval import agentic_retrieve
     return agentic_retrieve(proposer, spec, profile=profile, traj=traj, ctx=ctx)
 
 

@@ -5,18 +5,15 @@ import argparse
 import hashlib
 import json
 import os
-import sys
 import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from adapter_agent import _build
-from mpdd2025_decoding import GroupedDecodingClassifier
-from mpdd2025_model_bridge import build_model
-from run_method import _subject_of, metric_value
-from run_mpdd2025_all import official
+from merid.core.grounded_state_construction.adapter_agent import _build
+from merid.benchmarks.mpdd2025.decoding import GroupedDecodingClassifier
+from merid.benchmarks.mpdd2025.model_bridge import build_model
+from merid.run_method import _subject_of, metric_value
+from merid.benchmarks.mpdd2025.run_all import official
 
 
 def _complexity(config):
@@ -91,7 +88,7 @@ def _reference_clf_space(adapter_path, ctx):
 
 
 def reference_deploy(data, task, ctx, clf_configs, metric="official_composite"):
-    import run_method as RM
+    import merid.run_method as RM
     RM.SEL_METRIC = metric
     X, Xt = np.asarray(data["train_X"], float), np.asarray(data["test_X"], float)
     y = np.asarray(data["train_" + task], int)

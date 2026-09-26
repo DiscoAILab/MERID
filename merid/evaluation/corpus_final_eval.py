@@ -5,15 +5,12 @@ import argparse
 import hashlib
 import json
 import os
-import sys
 import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-import run_corpus as RC
-from adapter_agent import _build
+import merid.run_corpus as RC
+from merid.core.grounded_state_construction.adapter_agent import _build
 
 
 def _complexity(config):
@@ -24,7 +21,7 @@ def _complexity(config):
 
 
 def _members_1se(summary, summary_path, topk, metric, task, seed=0, n_boot=1000, honour_incumbent=True):
-    from run_method import metric_value
+    from merid.run_method import metric_value
     d = os.path.dirname(os.path.abspath(summary_path))
     pf = os.path.join(d, "development_predictions.json")
     if not os.path.exists(pf):
@@ -99,7 +96,7 @@ def _codegen_builder(summary_path, winners):
     path = os.path.join(os.path.dirname(os.path.abspath(summary_path)), "codegen_model.py")
     if not os.path.isfile(path):
         raise SystemExit("a member is the codegen candidate but %s is missing, so it cannot be rebuilt" % path)
-    from operation import build_from_code
+    from merid.core.coupled_pipeline_exploration.operation import build_from_code
     with open(path, encoding="utf-8") as fh:
         code = fh.read()
     build, _code = build_from_code(code)
@@ -183,7 +180,7 @@ def main(argv=None):
         yp = P.mean(axis=0)
     else:
         yp = np.apply_along_axis(lambda col: np.bincount(col.astype(int)).argmax(), 0, P)
-    from run_method import metric_value as _mv
+    from merid.run_method import metric_value as _mv
     RC._report(yt, yp, len(yt), "published test, fit on train only (development winner; %s)" % rule,
                [{"recipe": c["recipe"], "config": c["config"]} for c in winners], None)
     gap = None
@@ -196,7 +193,7 @@ def main(argv=None):
         print("  selection (dev) %s = %.4f | test = %.4f | gap %+.4f" % (RC.SEL_NAME, dev_score, test_score, gap), flush=True)
     print("   done in %.0fs" % (time.time() - t0))
 
-    from run_method import METRICS, REGRESSION_METRICS
+    from merid.run_method import METRICS, REGRESSION_METRICS
     names = REGRESSION_METRICS if RC._is_reg() else METRICS
     out = os.path.join(os.path.dirname(os.path.abspath(a.summary)),
                        "final_test_metrics_%s%d.json" % ("1se" if a.members == "1se" else "top", len(winners)))

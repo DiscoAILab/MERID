@@ -8,10 +8,7 @@ import os
 from pathlib import Path
 import tempfile
 
-try:
-    from .retrospective import assert_no_test
-except ImportError:
-    from retrospective import assert_no_test
+from merid.core.evidence_guided_evolution.retrospective import assert_no_test
 
 
 DISTILL_SYSTEM = """You distill research experience after a development experiment.

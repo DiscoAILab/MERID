@@ -26,7 +26,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
 
-from mpdd2026_data import create_train_val_split
+from merid.benchmarks.mpdd2026.data import create_train_val_split
 
 
 def safe_float(value: object) -> float:
@@ -248,13 +248,7 @@ def evaluate_development_probabilities(
     required_train_classes=None,
     seed_offset_by_fold=False,
 ):
-    # Package import first, so the caller and this module share one DevelopmentFoldProtocol class.
-    try:
-        from merid.mpdd2026_protocol import iter_development_folds
-    except ModuleNotFoundError as exc:
-        if exc.name not in ("merid", "merid.mpdd2026_protocol"):
-            raise
-        from mpdd2026_protocol import iter_development_folds
+    from merid.benchmarks.mpdd2026.protocol import iter_development_folds
 
     fit_calls = 0
     completed_folds = 0
@@ -910,13 +904,7 @@ def evaluate_regression_candidate(
         raise ValueError("data_scope must be all or development")
     if data_scope == "development":
         from decimal import Decimal, InvalidOperation
-        # Package import first, so the caller and this module share one DevelopmentFoldProtocol class.
-        try:
-            from merid.mpdd2026_protocol import iter_development_folds
-        except ModuleNotFoundError as exc:
-            if exc.name not in ("merid", "merid.mpdd2026_protocol"):
-                raise
-            from mpdd2026_protocol import iter_development_folds
+        from merid.benchmarks.mpdd2026.protocol import iter_development_folds
 
         if split_roots is not None:
             raise ValueError("development regression requires split_roots=None")

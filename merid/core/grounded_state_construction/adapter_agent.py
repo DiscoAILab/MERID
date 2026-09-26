@@ -277,10 +277,7 @@ def _id_overlap_lines(id_sets):
 
 def _label_provenance_lines(head, rows, max_classes=10, min_rows=50, strong=0.95):
     try:
-        try:
-            from .label_provenance import analyse, analyse_groups
-        except ImportError:
-            from label_provenance import analyse, analyse_groups
+        from merid.core.grounded_state_construction.label_provenance import analyse, analyse_groups
     except Exception as exc:
         return ["    LABEL PROVENANCE: not computed (%s)" % type(exc).__name__]
     if len(rows) < min_rows:
@@ -858,10 +855,7 @@ def check_recipe_honored(load, probes) -> str:
 
 
 def _development_identity_error(data):
-    try:
-        from .development_search import _identities
-    except ImportError:
-        from development_search import _identities
+    from merid.core.coupled_pipeline_exploration.development_search import _identities
     try:
         for split in ('train', 'dev'):
             if split + '_X' not in data:
@@ -1145,10 +1139,7 @@ class AdapterAgent:
             scoped = _scoped_adapter_load(raw_load, data_scope)
             if not adapter_cache_bytes:
                 return scoped
-            try:
-                from .adapter_cache import AdapterOutputCache
-            except ImportError:
-                from adapter_cache import AdapterOutputCache
+            from merid.core.grounded_state_construction.adapter_cache import AdapterOutputCache
             return AdapterOutputCache(scoped, max_bytes=adapter_cache_bytes)
 
         def validate(data):

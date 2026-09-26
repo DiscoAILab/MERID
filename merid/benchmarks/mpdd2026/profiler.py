@@ -54,10 +54,7 @@ def profile(harness, ref=("opensmile", "openface", "stats_q_pz")) -> dict:
         "ref_bank": "/".join(ref),
     }
     if development:
-        try:
-            from .mpdd2026_metrics import METRIC_CONTRACT
-        except ImportError:
-            from mpdd2026_metrics import METRIC_CONTRACT
+        from merid.benchmarks.mpdd2026.metrics import METRIC_CONTRACT
         prof["metric_contract"] = METRIC_CONTRACT
         prof["selection_metric"] = (
             "(binary Macro-F1 + ternary Macro-F1 + raw PHQ CCC on 0..27 values) / 3")

@@ -6,23 +6,20 @@ import math
 import os
 import re
 import shutil
-import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from evaluate import Harness
-from manager import optimize
-from profiler import profile as build_profile
-from proposer import ClaudeProposer, RandomProposer
+from merid.benchmarks.mpdd2026.evaluate import Harness
+from merid.benchmarks.mpdd2026.manager import optimize
+from merid.benchmarks.mpdd2026.profiler import profile as build_profile
+from merid.llm.proposer import ClaudeProposer, RandomProposer
 try:
-    from trajectory import Trajectory
+    from merid.utils.trajectory import Trajectory
 except ImportError:
     Trajectory = None
-from mpdd2026_metrics import METRIC_CONTRACT
-from mpdd2026_joint_search import (HeadProposer, validate_envelope,
-                                 _validate_result, _joint)
+from merid.benchmarks.mpdd2026.metrics import METRIC_CONTRACT
+from merid.benchmarks.mpdd2026.joint_search import (
+    HeadProposer, validate_envelope, _validate_result, _joint)
 
 
 class RequiredLLMFailure(BaseException):
@@ -87,13 +84,17 @@ def _atomic_json(path, payload):
 def _snapshot_code(run_dir):
     project = Path(__file__).resolve().parents[1]
     relative_paths = (
-        "merid/run_agent.py", "merid/evaluate.py", "merid/manager.py",
-        "merid/proposer.py", "merid/profiler.py", "merid/space.py",
-        "merid/mpdd2026_protocol.py",
-        "merid/mpdd2026_metrics.py",
-        "merid/mpdd2026_joint_search.py",
-        "merid/mpdd2026_data.py",
-        "merid/mpdd2026_heads.py",
+        "merid/run_agent.py",
+        "merid/benchmarks/mpdd2026/evaluate.py",
+        "merid/benchmarks/mpdd2026/manager.py",
+        "merid/llm/proposer.py",
+        "merid/benchmarks/mpdd2026/profiler.py",
+        "merid/benchmarks/mpdd2026/space.py",
+        "merid/benchmarks/mpdd2026/protocol.py",
+        "merid/benchmarks/mpdd2026/metrics.py",
+        "merid/benchmarks/mpdd2026/joint_search.py",
+        "merid/benchmarks/mpdd2026/data.py",
+        "merid/benchmarks/mpdd2026/heads.py",
     )
     hashes = {}
     for relative in relative_paths:

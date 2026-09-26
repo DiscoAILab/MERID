@@ -279,10 +279,7 @@ class DevelopmentSearch:
     def evaluate(self, recipes, configs, round_no=0, on_record=None):
         incumbent = self.best['id'] if self.best else None
         start_count = len(self.records)
-        try:
-            from .progress import Progress
-        except ImportError:
-            from progress import Progress
+        from merid.utils.progress import Progress
         planned = min(self.max_evaluations - len(self.records),
                       sum(1 for c in configs for r in recipes
                           if fingerprint({'recipe': r, 'config': c}) not in self.evaluated))
