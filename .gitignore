@@ -1,0 +1,52 @@
+# Editor local history
+.history/
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+env/
+.conda/
+
+# Test and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data, features and run outputs never belong in this repository.
+*.npy
+*.npz
+*.csv
+*.pkl
+*.h5
+*.parquet
+*.wav
+*.mp4
+*.zip
+*.tar
+*.tar.gz
+artifacts/
+results/
+output/
+logs/
+*.log
+
+# Credentials. Every key is read from the environment.
+.env
+*.key
+*credentials*
+*secret*
