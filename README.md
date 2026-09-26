@@ -55,7 +55,8 @@ families (`run_agent.py`, `mpdd2026_joint_search.py`).
 | Final evaluation | `corpus_final_eval.py` · `mpdd2025_final_eval.py` · `mpdd2026_final_eval.py` · `run_e2e.py` |
 | LLM and logging | `proposer.py` · `trajectory.py` · `progress.py` |
 
-Each module opens with a one-line summary of its role.
+Each module opens with a one-line summary of its role. Paths specific to our computing environment
+appear as placeholders such as `<SPLIT_ROOT>`.
 
 ## Prompts
 
@@ -73,19 +74,3 @@ The prompts reproduced in the appendix are defined in these modules:
 | Planner, Engineer, Reviewer, Chair | `retrospective.py` `ROLE_SYSTEM`, `CHAIR_SYSTEM`, `REVISION_REQUIRED`, `_INVESTIGATE` |
 | Distill and Reconcile | `research_memory.py` `DISTILL_SYSTEM`, `RECONCILE_SYSTEM` |
 | Web-search clause | `retrieval.py` `OPTIONAL_SEARCH_CLAUSE` |
-
-## Design principles
-
-- **Selection stays on development data.** Development runs use training data or the official
-  development split, review evidence is checked for test fields, and the held-out test set is read
-  once, after selection.
-- **Subject-level evaluation.** Folds and bootstrap resampling group records by subject, so no
-  subject appears on both sides of a split.
-- **Traceable runs.** Every run saves its trajectory: system prompts, logged decisions with their
-  reasoning, and token and cost totals over all LLM calls.
-
-## Notes
-
-- The API key is read from the `ANTHROPIC_API_KEY` environment variable.
-- Paths specific to our computing environment are replaced by placeholders such as `<SPLIT_ROOT>`.
-- `requirements.txt` lists the Python packages the modules import.
