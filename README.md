@@ -72,6 +72,64 @@ families (`run_agent.py`, `benchmarks/mpdd2026/joint_search.py`).
 Each module opens with a one-line summary of its role. Paths specific to our computing environment
 appear as placeholders such as `<SPLIT_ROOT>`.
 
+## Usage
+
+Python 3.10 or later:
+
+```bash
+pip install -r requirements.txt
+export ANTHROPIC_API_KEY=<YOUR_API_KEY>   # ANTHROPIC_BASE_URL is read as well
+```
+
+Run the commands from the repository root; arguments in angle brackets are local paths. The datasets
+are not included.
+
+**Development run.** The agent searches and reviews on training and development data only and writes
+its results under `--output_dir`. The flags are the settings of the paper's runs.
+
+```bash
+# E-DAIC; Mental Health and Kaggle also run through run_corpus
+python -m merid.run_corpus --evaluation development --data_root <EDAIC_TRAIN_DEV_ROOT> \
+    --ctx E-DAIC --task binary --output_dir <OUT_DIR> --seed 0 \
+    --development_folds 3 --max_evaluations 256 --retrospective 1 --review_checks 2 \
+    --selection_metric macro_f1 --selection_rule incumbent --promotion_se 1.0 \
+    --reliability_gate off --require_llm
+
+# MPDD-2025, one track/window/task cell
+python -m merid.run_method --evaluation development --data_root <MPDD2025_TRAIN_ROOT> \
+    --ctx MPDD-Elderly/1s --task binary --output_dir <OUT_DIR> --seed 0 \
+    --development_folds 3 --max_evaluations 256 --retrospective 1 --review_checks 2 \
+    --selection_metric official_composite --selection_rule incumbent --promotion_se 1.0 \
+    --reliability_gate off --require_llm \
+    --decoder_strategies plain,subject_consensus,metric_bias,metric_bias_consensus
+
+# MPDD-2026, Track1 (Elder) or Track2 (Young)
+python -m merid.run_agent --evaluation development --track Track1 \
+    --train_root <MPDD2026_TRAIN_ROOT> --personality_npy <PERSONALITY_NPY> \
+    --split_root <SPLIT_ROOT> --fold_task binary --n_folds 10 \
+    --search_mode joint_heads --budget 12 --fit_budget 720 \
+    --retrospective 1 --review_checks 2 --revision_reserve 0.25 \
+    --seed 0 --output_dir <OUT_DIR> --require_llm
+```
+
+Pipelines inherited from an earlier round enter the search through `--reference_candidates <JSON>`
+(`run_corpus`, `run_method`) or `--reference_components <JSON>` (`run_agent`).
+
+**Final evaluation.** The development-selected deployment is scored once on the held-out test set:
+
+```bash
+python -m merid.evaluation.corpus_final_eval --summary <OUT_DIR>/development_summary.json \
+    --adapter <ADAPTER_PY> --ctx E-DAIC --members 1se --topk 5
+python -m merid.evaluation.mpdd2025_final_eval --summary <OUT_DIR>/development_summary.json \
+    --adapter <ADAPTER_PY> --ctx MPDD-Elderly/1s --members 1se --topk 5
+python -m merid.evaluation.mpdd2026_final_eval --results <RUN_DIR>/results.json --track Track1 \
+    --split_root <SPLIT_ROOT> --answer_zip <ANSWER_ZIP> --topk 5
+```
+
+`<ADAPTER_PY>` is a frozen adapter that also loads the test partition, and `<RUN_DIR>` is the run
+directory `run_agent` creates under `--output_dir`; for MPDD-2026, `--reference_heads <JSON>` applies
+the incumbent rule to inherited heads. Each script lists its options with `--help`.
+
 ## Prompts
 
 The prompts reproduced in the appendix are defined in these modules (paths relative to `merid/`):
